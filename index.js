@@ -43,8 +43,15 @@ function requestGlobalContactID() {
   return sync.await(request.post(opts, sync.defer()));
 }
 
+
 function generateGlobalContactID() {
-  // TODO: Implement retry for requestGlobalContactID
+  for (var i = 0; i < 5; i++) {
+    var res = requestGlobalContactID();
+    if (res.statusCode === 200) {
+      return res.body.id;
+    }
+  }
+  return null;
 }
 
 var contactID = 1;
@@ -54,7 +61,7 @@ function generateLocalContactID() {
 }
 
 function addContact(contact) {
-  var id = generateLocalContactID();
+  var id = generateGlobalContactID();
   if (!id) {
     return null;
   }
