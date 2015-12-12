@@ -53,6 +53,26 @@ function generateLocalContactID() {
   return contactID++;
 }
 
+function addContact(contact) {
+  var id = generateLocalContactID();
+  if (!id) {
+    return null;
+  }
+
+  contact.id = id;
+  contacts[id] = contact;
+
+  return contact;
+}
+
+function getContactFromID(id) {
+  if (!contacts[id]) {
+    return null;
+  }
+
+  return contacts[id];
+}
+
 function deleteContact(id) {
   if (!contacts[id]) {
     return null;
@@ -108,11 +128,28 @@ app.get('/api/1/contacts', function (req, res) {
 });
 
 app.get('/api/1/contacts/:id', function (req, res) {
-  // TODO: Get a contact object by ID
+  var contact = getContactFromID(req.params.id);
+  if (!contact) {
+    res.status(404).json({
+      error: 'contact id is not found'
+    });
+  }
+
+  res.status(200).json({
+    contacts: [contact]
+  });
 });
 
 app.post('/api/1/contacts', function (req, res) {
-  // TODO: Create a contact
+  var contact = addContact(req.body);
+  if (!contact) {
+    res.status(500).json({
+      error: 'cannot create contact'
+    });
+    return;
+  }
+
+  res.status(200).json(contact);
 });
 
 app.delete('/api/1/contacts/:id', function (req, res) {
