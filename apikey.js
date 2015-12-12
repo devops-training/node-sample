@@ -1,7 +1,11 @@
 var crypto = require('crypto');
 
 function calcHMAC(url, method, body, nonce, key) {
-  // TODO: Create HMAC signature by using crypto
+  if (!key) {
+    throw new Error('key not specified');
+  }
+
+  return crypto.createHmac('sha256', key).update(nonce + url + method + body).digest('hex');
 }
 
 function sendAuthError(res) {
@@ -21,10 +25,21 @@ function verify(apiKeys) {
       body = '';
     }
 
-    // TODO: Create signature and compare with the signature from client
+    try {
+      hmac = calcHMAC(req.originalUrl, method, body, req.headers['x-api-nonce'], apiKeys[req.headers['x-api-key']]);
+    } catch (e) {
+      sendAuthError(res);
+      return;
+    }
+
+    if (req.headers['x-api-sign'] != hmac) {
+      sendAuthError(res);
+      return;
+    }
 
     next();
   };
 }
 
 exports.verify = verify;
+exports.calcHMAC = calcHMAC;
